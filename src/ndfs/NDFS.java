@@ -40,4 +40,33 @@ public interface NDFS {
      *      else
      *          s.color = blue
      */
+
+    /*  PSEUDOCODE ALGORITHM 2
+     *  proc mc-ndfs(s, N)
+     *      dfs_blue(s,) ||..|| dfs_blue(s, N)
+     *      report no cycle
+     *
+     *  proc dfs_blue(s ,i)
+     *      s.color[i] := cyan
+     *      for all t in postb,i(s) do
+     *          if t.color[i] = white and not t.red
+     *              dfs_blue(t,i)
+     *      if s in A
+     *          s.count := s.count + 1
+     *          dfs_red(s,i)
+     *      s.color[i] := blue
+     *
+     *  proc dfs_red(s,i)
+     *      s.pink[i] := true
+     *      for all t in postr,i(s) do
+     *          if t.color[i] = cyan
+     *              report cycle & exit all
+     *          if (not)t.pink[i](and)(not)t.red
+     *              dfs_red(t, i)
+     *      if s in A
+     *          s.count := s.count - 1
+     *          await s.count = 0
+     *      s.red := true
+     *      s.pink[i] := false
+     */
 }
