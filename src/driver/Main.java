@@ -40,8 +40,8 @@ public class Main {
 
     private static void runMCNDFS(File promelaFile, String version,
             int nrWorkers) throws Exception {
-
         NDFS ndfs = NDFSFactory.createMCNDFS(promelaFile, nrWorkers, version);
+
         long start = System.currentTimeMillis();
 
         boolean result = ndfs.ndfs();

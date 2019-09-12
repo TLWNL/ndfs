@@ -37,20 +37,50 @@ public class Worker {
         this.graph = GraphFactory.createGraph(promelaFile);
     }
 
+    //Add an extra parameter: int N indicating which direction a thread should take
+    //when traversing the state space
     private void dfsRed(State s) throws CycleFoundException {
-
+        /*
+            Pseudo:
+            s.pink[i] = true;
+            for(t in post_r_i(s)) do{
+                if(t.color[i] == CYAN)
+                    report cycle and exit;
+                if(!t.pink[i] && !t.red[i])
+                    dfs_red(t, i);
+            }
+            if(s.isAccepting()){
+                s.count--;
+                while(!s.count == 0);
+            }
+            s.red[i] = true;
+            s.pink[i] = false;
+        */
         for (State t : graph.post(s)) {
             if (colors.hasColor(t, Color.CYAN)) {
                 throw new CycleFoundException();
             } else if (colors.hasColor(t, Color.BLUE)) {
                 colors.color(t, Color.RED);
-                dfsRed(t);
+                dfsRed(t); 
             }
         }
     }
 
+    //Add an extra parameter: int i indicating which direction a thread should take
+    //when traversing the state space
     private void dfsBlue(State s) throws CycleFoundException {
-
+        /*
+            Pseudo:
+            s.color[i] = CYAN
+            for all t in post_b_i() do:
+                if(t.color[i] == white)
+                    report cycle and exit;
+            if(s.isAccepting()){
+                s.count++;
+                dfs_red(s, i);
+            }
+            s.color[i] = BLUE;
+        */
         colors.color(s, Color.CYAN);
         for (State t : graph.post(s)) {
             if (colors.hasColor(t, Color.WHITE)) {
@@ -65,13 +95,23 @@ public class Worker {
         }
     }
 
+    //Add an extra parameter: int N indicating which direction a thread should take
+    //when traversing the state space
     private void nndfs(State s) throws CycleFoundException {
+        //This is the original caller of the algorithm
+        /*Pseudo:
+            dfs_blue(s, 1) || ... || dfs_blue(s, N)
+            this is what we have to alter this function to
+        */
         dfsBlue(s);
     }
 
     public void run() {
         try {
-            nndfs(graph.getInitialState());
+            Thread currT = Thread.currentThread();
+            long n = currT.getId();
+            System.out.printf("Current thread: %d\n", n);
+            nndfs(graph.getInitialState()); //Add parameter here: int N to indicate traversel of current thread
         } catch (CycleFoundException e) {
             result = true;
         }
