@@ -12,11 +12,12 @@ import graph.State;
  * <a href="http://www.cs.vu.nl/~tcs/cm/ndfs/laarman.pdf"> "the Laarman
  * paper"</a>.
  */
-public class Worker {
+public class Worker implements Runnable{
 
     private final Graph graph;
     private final Colors colors = new Colors();
     private boolean result = false;
+    private final int id;
 
     // Throwing an exception is a convenient way to cut off the search in case a
     // cycle is found.
@@ -32,9 +33,10 @@ public class Worker {
      * @throws FileNotFoundException
      *             is thrown in case the file could not be read.
      */
-    public Worker(File promelaFile) throws FileNotFoundException {
+    public Worker(File promelaFile, int workerId) throws FileNotFoundException {
 
         this.graph = GraphFactory.createGraph(promelaFile);
+        this.id = workerId;
     }
 
     //Add an extra parameter: int N indicating which direction a thread should take
@@ -106,15 +108,22 @@ public class Worker {
         dfsBlue(s);
     }
 
+    @Override
     public void run() {
         try {
-            Thread currT = Thread.currentThread();
-            long n = currT.getId();
-            System.out.printf("Current thread: %d\n", n);
-            nndfs(graph.getInitialState()); //Add parameter here: int N to indicate traversel of current thread
+            //This just to see that they both executing, can unbox the sleep down there if ya wanna see fo sho
+            //then you also gotta uncomment the extra catch
+            System.out.printf("Current thread: %d\n", this.id);
+            
+            /*Thread.sleep(10000);*/
+            
+            nndfs(graph.getInitialState()); //Add parameter here: int N to indicate traversal of current thread
         } catch (CycleFoundException e) {
             result = true;
         }
+        /*catch(InterruptedException e){
+            //ignore
+        }*/
     }
 
     public boolean getResult() {
