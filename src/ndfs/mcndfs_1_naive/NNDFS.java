@@ -11,7 +11,9 @@ import ndfs.NDFS;
  */
 public class NNDFS implements NDFS {
 
-    private final Worker worker;
+    private final Thread[] threads;
+    private final Worker[] workers;
+    private final int length;
 
     /**
      * Constructs an NDFS object using the specified Promela file.
@@ -21,18 +23,41 @@ public class NNDFS implements NDFS {
      * @throws FileNotFoundException
      *             is thrown in case the file could not be read.
      */
+
+
+    //Added nWorkers
     public NNDFS(File promelaFile, int nWorkers) throws FileNotFoundException {
+        //Need both Worker and Thread, cause Thread wont have the getResult(), and we need that badboi
+        //to grab that cyclefound bool
+        this.length = nWorkers;
+        this.threads = new Thread[nWorkers];
+        this.workers = new Worker[nWorkers];
 
-        this.worker = new Worker(promelaFile);
-
+        //Create the workers and threads (give the workers an id, maybe we can use that later for how 
+        // to traverse this shiet, but not sure yet if thats really necessary)
         for(int i = 0; i < nWorkers; i++){
-            //make some goddamn workers, just a bunch of em
+            this.workers[i] = new Worker(promelaFile, i);
+
+            this.threads[i] = new Thread(this.workers[i]);
+            System.out.printf("Worker %d stored\n", i);
         }
+
     }
 
     @Override
     public boolean ndfs() {
-        worker.run();
-        return worker.getResult();
+        //Start them threads
+        for(Thread w : this.threads){
+            w.start();
+        }
+
+        //Grab the results from workers, this now immediately executing, so way before the
+        //workers are actually done :/, so its just gonna return false until we make it wait
+        for(Worker w: this.workers){
+            if(w.getResult()){
+                return true;
+            }
+        }
+        return false;
     }
 }
