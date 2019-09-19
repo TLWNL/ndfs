@@ -15,8 +15,14 @@ import graph.State;
 public class Worker implements Runnable{
 
     private final Graph graph;
+    private static final Colors global_colors = new Colors();
     private final Colors colors = new Colors();
+    private static int stateCount = 0;
     private boolean result = false;
+
+    public static void main(String[] args) {
+
+    }
     private final int id;
 
     // Throwing an exception is a convenient way to cut off the search in case a
@@ -37,15 +43,18 @@ public class Worker implements Runnable{
 
         this.graph = GraphFactory.createGraph(promelaFile);
         this.id = workerId;
+        // Creates a local hashmap for the colors per worker thread
+//        this.thread_colors = new Colors();
     }
 
     //Add an extra parameter: int N indicating which direction a thread should take
     //when traversing the state space
-    private void dfsRed(State s) throws CycleFoundException {
+    private void dfsRed(State s, int workerId) throws CycleFoundException {
         /*
             Pseudo:
             s.pink[i] = true;
             for(t in post_r_i(s)) do{
+            -- With post_r_i we denote the permutation of sucessors used in the blue/red DFS by worker i.
                 if(t.color[i] == CYAN)
                     report cycle and exit;
                 if(!t.pink[i] && !t.red[i])
@@ -58,19 +67,24 @@ public class Worker implements Runnable{
             s.red[i] = true;
             s.pink[i] = false;
         */
+        colors.color(s, Color.PINK);
         for (State t : graph.post(s)) {
             if (colors.hasColor(t, Color.CYAN)) {
                 throw new CycleFoundException();
-            } else if (colors.hasColor(t, Color.BLUE)) {
-                colors.color(t, Color.RED);
-                dfsRed(t); 
+            } else if (!colors.hasColor(t, Color.PINK) && !global_colors.hasColor(t, Color.RED)) {
+//                colors.color(t, Color.RED);
+                dfsRed(t, workerId);
             }
+        }
+
+        if (s.isAccepting()) {
+
         }
     }
 
     //Add an extra parameter: int i indicating which direction a thread should take
     //when traversing the state space
-    private void dfsBlue(State s) throws CycleFoundException {
+    private void dfsBlue(State s, int workerId) throws CycleFoundException {
         /*
             Pseudo:
             s.color[i] = CYAN
@@ -83,15 +97,17 @@ public class Worker implements Runnable{
             }
             s.color[i] = BLUE;
         */
+        // Sets the color of the local hashmap to cyan
         colors.color(s, Color.CYAN);
         for (State t : graph.post(s)) {
-            if (colors.hasColor(t, Color.WHITE)) {
-                dfsBlue(t);
+            // Should check the local hashmap for the thread for white and the global for red!
+            if (colors.hasColor(t, Color.WHITE) && !global_colors.hasColor(t, Color.RED)) {
+                dfsBlue(t, workerId);
             }
         }
         if (s.isAccepting()) {
-            dfsRed(s);
-            colors.color(s, Color.RED);
+            stateCount++;
+            dfsRed(s, workerId);
         } else {
             colors.color(s, Color.BLUE);
         }
@@ -99,13 +115,14 @@ public class Worker implements Runnable{
 
     //Add an extra parameter: int N indicating which direction a thread should take
     //when traversing the state space
-    private void nndfs(State s) throws CycleFoundException {
+    private void nndfs(State s, int workerId) throws CycleFoundException {
         //This is the original caller of the algorithm
         /*Pseudo:
             dfs_blue(s, 1) || ... || dfs_blue(s, N)
             this is what we have to alter this function to
         */
-        dfsBlue(s);
+        // add integer for dfs_blue(s,N);
+        dfsBlue(s, workerId);
     }
 
     @Override
@@ -117,7 +134,7 @@ public class Worker implements Runnable{
             
             /*Thread.sleep(10000);*/
             
-            nndfs(graph.getInitialState()); //Add parameter here: int N to indicate traversal of current thread
+            nndfs(graph.getInitialState(), this.id); //Add parameter here: int N to indicate traversal of current thread
         } catch (CycleFoundException e) {
             result = true;
         }
