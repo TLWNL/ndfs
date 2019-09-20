@@ -39,7 +39,7 @@ public class NNDFS implements NDFS {
             this.workers[i] = new Worker(promelaFile, i);
 
             this.threads[i] = new Thread(this.workers[i]);
-            System.out.printf("Worker %d stored\n", i);
+            ////////////////////////System.out.printf("Worker %d stored\n", i);
         }
 
     }
@@ -53,6 +53,13 @@ public class NNDFS implements NDFS {
 
         //Grab the results from workers, this now immediately executing, so way before the
         //workers are actually done :/, so its just gonna return false until we make it wait
-        return this.workers[0].getResult();
+        boolean done = false;
+        while(!Worker.youDoneYet());
+
+        /*for(Thread w : this.threads){
+            w.interrupt();
+        }*/
+        ////////////////////////System.out.printf("Worker 0 is done\n");
+        return Worker.getResult();
     }
 }

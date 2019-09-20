@@ -6,7 +6,8 @@ import java.io.FileNotFoundException;
 import graph.Graph;
 import graph.GraphFactory;
 import graph.State;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.*;
+import java.util.concurrent.atomic.*;
 
 /**
  * This is a straightforward implementation of Figure 1 of
@@ -14,17 +15,24 @@ import java.util.concurrent.locks.ReentrantLock;
  * paper"</a>.
  */
 public class Worker implements Runnable{
+    private int blue_count = 0;
+    private int red_count = 0;
+
+
     //This bad boi is for shared count
-    private static StateCount stateCount = new StateCount();
-    private final ReentrantLock lock = new ReentrantLock(true); 
+    private static final StateCount stateCount = new StateCount();
+    private static final Lock lock = new ReentrantLock();
+    private static final Lock doneLock = new ReentrantLock();
+    private static final Condition isZero = lock.newCondition();
+    private static final Condition isDoneCond = doneLock.newCondition();
 
     private final Graph graph;
     private static final Colors globalColors = new Colors();
     private final Colors colors = new Colors();
     //private static int stateCount = 0;
-    private static boolean result = false;
+    private static AtomicBoolean result = new AtomicBoolean(false);
 
-    private static boolean isDone = false;
+    private static AtomicBoolean isDone = new AtomicBoolean(false);
 
     private final int id;
 
@@ -50,6 +58,7 @@ public class Worker implements Runnable{
     //Add an extra parameter: int N indicating which direction a thread should take
     //when traversing the state space
     private void dfsRed(State s, int workerId) throws CycleFoundException {
+        red_count++;
         /*
             Pseudo:
             s.pink[i] = true;
@@ -67,9 +76,10 @@ public class Worker implements Runnable{
             s.red = true;
             s.pink[i] = false;
         */
-        colors.color(s, Color.PINK);
+        //////////////////colors.color(s, Color.PINK);
         for (State t : graph.post(s)) {
             if (colors.hasColor(t, Color.CYAN)) {
+                //////////////////System.out.printf("bc=%d  rc=%d when accept cycle is detected\n", blue_count, red_count);
                 throw new CycleFoundException();
             } else if (!colors.hasColor(t, Color.PINK) && !globalColors.hasColor(t, Color.RED)) {
                 dfsRed(t, workerId);
@@ -79,12 +89,23 @@ public class Worker implements Runnable{
             lock.lock();
             try{
                 stateCount.decrement(s);
+                
+                /*if(stateCount.currentCount(s) == 0)
+                    isZero.signalAll();*/
+                //System.out.printf("Worker %d now waiting for count == 0\n", this.id);
+                //isZero.signalAll();
+                while(stateCount.currentCount(s) != 0){
+                    isZero.await();
+                    //System.out.printf(" [Still waitin: %d] ", this.id);
+                }
+                //System.out.printf("Worker %d DONE waiting, count == 0\n", this.id);
+            } catch(InterruptedException e){
+                e.printStackTrace();
             } finally{
                 lock.unlock();
             }
 
             //condition.await(), need to fix this bitch over here, this most likely where it gets stuck
-            while(stateCount.currentCount(s) != 0);
         }
         globalColors.color(s, Color.RED);
         colors.color(s, Color.WHITE);
@@ -93,6 +114,7 @@ public class Worker implements Runnable{
     //Add an extra parameter: int i indicating which direction a thread should take
     //when traversing the state space
     private void dfsBlue(State s, int workerId) throws CycleFoundException {
+        blue_count++;
         /*
             Pseudo:
             s.color[i] = CYAN
@@ -109,11 +131,11 @@ public class Worker implements Runnable{
         colors.color(s, Color.CYAN);
         for (State t : graph.post(s)) {
             // Should check the local hashmap for the thread for white and the global for red!
-            // <- that aint precisely the same tho, they always just check for  == white, i think ours should just do the same
             if (colors.hasColor(t, Color.WHITE) && !globalColors.hasColor(t, Color.RED)) {
                 dfsBlue(t, workerId);
             }
         }
+        ////////////////////////System.out.printf("%d: is accepting = %s\n", blue_count, s.isAccepting());
         if (s.isAccepting()) {
             lock.lock();
             try{
@@ -149,20 +171,73 @@ public class Worker implements Runnable{
             
             nndfs(graph.getInitialState(), this.id); //Add parameter here: int N to indicate traversal of current thread
             //System.out.printf("It does finish the program tho\n");
-            isDone = true;
+            ////////////////////////System.out.printf("Thread %d setting isDone to true now\n", this.id);
+            doneLock.lock();
+            try{
+                isDone.set(true);
+                ////////////////////////System.out.printf("Result in thread %d == %s", this.id, isDone.get());
+            } finally{
+                doneLock.unlock();
+            }
         } catch (CycleFoundException e) {
-            result = true;
-            isDone = true;
+            doneLock.lock();
+            try{
+                result.set(true);
+                isDone.set(true);
+                //isDoneCond.signalAll();
+                ////////////////////////System.out.printf("Result in thread %d == %s", this.id, isDone.get());
+                //System.out.printf("This happen?\n");
+            } finally{
+                doneLock.unlock();
+                //System.out.printf("This happen too?\n");
+            }
+            
+
+        } catch (Exception e){
+            ////////////////////////System.out.println("Unexpected exception was caught");
         }
         /*catch(InterruptedException e){
             //ignore
         }*/
+        ////////////////////////System.out.printf("Thread %d has terminated with bc=%d and rc=%d\n", this.id, blue_count, red_count);
     }
 
     public static boolean getResult() {
-        System.out.printf("Now waiting for result..\n");
-        while(!isDone || result);
-        System.out.printf("Result: %s\n", result);
-        return result;
+        
+        /*doneLock.lock();
+        try{
+            System.out.printf("Now waiting for result..\n");
+            while(!isDone.get() || result.get()){
+                //System.out.printf("%s=", isDone.get());
+                isDoneCond.await();
+            }
+        } catch(InterruptedException ie){
+            ie.printStackTrace();
+        } finally{
+            doneLock.unlock();
+        }
+
+        System.out.printf("Done = %s, Result: %s\n", isDone, result);*/
+        boolean resultFinal;
+        doneLock.lock();
+        try{
+            resultFinal = result.get();
+        } finally{
+            doneLock.unlock();
+        }
+        ////////////////////////System.out.printf("%s is getting returned as result\n", resultFinal);
+        return resultFinal;
+    }
+
+    public static boolean youDoneYet(){
+        boolean ret;
+        doneLock.lock();
+        try{
+            ret = isDone.get();
+        } finally{
+            doneLock.unlock();
+        }
+        //System.out.println("Going hard in this bitch");
+        return ret;
     }
 }
