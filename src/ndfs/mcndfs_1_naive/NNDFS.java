@@ -53,11 +53,6 @@ public class NNDFS implements NDFS {
 
         //Grab the results from workers, this now immediately executing, so way before the
         //workers are actually done :/, so its just gonna return false until we make it wait
-        for(Worker w: this.workers){
-            if(w.getResult()){
-                return true;
-            }
-        }
-        return false;
+        return this.workers[0].getResult();
     }
 }
