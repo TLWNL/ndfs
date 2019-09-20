@@ -79,29 +79,32 @@ public class Worker implements Runnable{
         //////////////////colors.color(s, Color.PINK);
         for (State t : graph.post(s)) {
             if (colors.hasColor(t, Color.CYAN)) {
-                //////////////////System.out.printf("bc=%d  rc=%d when accept cycle is detected\n", blue_count, red_count);
+//                System.out.printf("bc=%d  rc=%d when accept cycle is detected\n", blue_count, red_count);
                 throw new CycleFoundException();
             } else if (!colors.hasColor(t, Color.PINK) && !globalColors.hasColor(t, Color.RED)) {
                 dfsRed(t, workerId);
             }
         }
         if (s.isAccepting()) {
+//            System.out.println(this.id + " LOCKING/n");
             lock.lock();
             try{
                 stateCount.decrement(s);
                 
                 /*if(stateCount.currentCount(s) == 0)
                     isZero.signalAll();*/
-                //System.out.printf("Worker %d now waiting for count == 0\n", this.id);
+//                System.out.printf("Worker %d now waiting for count == 0\n", this.id);
                 //isZero.signalAll();
                 while(stateCount.currentCount(s) != 0){
-                    isZero.await();
-                    //System.out.printf(" [Still waitin: %d] ", this.id);
+//                    System.out.println(this.id + " AWAITING/n");
+                    isZero.await();     // !!!!!
+                    System.out.printf(" [Still waitin: %d] ", this.id);
                 }
                 //System.out.printf("Worker %d DONE waiting, count == 0\n", this.id);
             } catch(InterruptedException e){
                 e.printStackTrace();
             } finally{
+//                System.out.println(this.id + " UNLOCKING");
                 lock.unlock();
             }
 
@@ -135,7 +138,7 @@ public class Worker implements Runnable{
                 dfsBlue(t, workerId);
             }
         }
-        ////////////////////////System.out.printf("%d: is accepting = %s\n", blue_count, s.isAccepting());
+//        System.out.printf("%d: is accepting = %s\n", blue_count, s.isAccepting());
         if (s.isAccepting()) {
             lock.lock();
             try{

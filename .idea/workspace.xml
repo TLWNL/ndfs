@@ -1,7 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4fb8626e-ee00-4cd5-b2d4-53302068b9f9" name="Default Changelist" comment="" />
+    <list default="true" id="4fb8626e-ee00-4cd5-b2d4-53302068b9f9" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/javadoc/allclasses-frame.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/allclasses-noframe.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/constant-values.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/deprecated-list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/driver/Main.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/driver/package-frame.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/driver/package-summary.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/driver/package-tree.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/example_callable/Main.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/example_callable/Worker.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/example_callable/package-frame.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/example_callable/package-summary.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/example_callable/package-tree.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/example_threads/Main.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/example_threads/Worker.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/example_threads/package-frame.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/example_threads/package-summary.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/example_threads/package-tree.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/help-doc.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/index-all.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/NDFS.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/NDFSFactory.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/mcndfs_1_naive/Color.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/mcndfs_1_naive/Colors.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/mcndfs_1_naive/NNDFS.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/mcndfs_1_naive/Worker.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/mcndfs_1_naive/package-frame.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/mcndfs_1_naive/package-summary.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/mcndfs_1_naive/package-tree.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/nndfs/Color.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/nndfs/Colors.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/nndfs/NNDFS.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/nndfs/Worker.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/nndfs/package-frame.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/nndfs/package-summary.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/nndfs/package-tree.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/package-frame.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/package-summary.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/ndfs/package-tree.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/overview-frame.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/overview-summary.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/overview-tree.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/package-list" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/script.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/javadoc/stylesheet.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/NDFSFactory.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/NDFSFactory.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/NNDFS.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/NNDFS.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/Worker$CycleFoundException.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/Worker$CycleFoundException.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/Worker.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/Worker.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/nndfs/Worker$CycleFoundException.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/nndfs/Worker$CycleFoundException.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/nndfs/Worker.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/nndfs/Worker.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/jar/ndfs.jar" beforeDir="false" afterPath="$PROJECT_DIR$/build/jar/ndfs.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ndfs/mcndfs_1_naive/Worker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ndfs/mcndfs_1_naive/Worker.java" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,7 +79,10 @@
     <property name="node.js.path.for.package.tslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="vcs.Git" />
+    <property name="project.structure.last.edited" value="Project" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.0" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -47,7 +106,8 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1567782814092</updated>
-      <workItem from="1567782819111" duration="4527000" />
+      <workItem from="1567782819111" duration="5667000" />
+      <workItem from="1568807994017" duration="18936000" />
     </task>
     <servers />
   </component>
@@ -59,7 +119,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>
