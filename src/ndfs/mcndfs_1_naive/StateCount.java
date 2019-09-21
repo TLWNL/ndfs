@@ -40,7 +40,7 @@ public class StateCount{
 			////////////////////////System.out.printf("After decr: ");
 			////////////////////////System.out.println(map.values());
 		} else{ //This should never be able to occur, if it does, we are doing something wrong in Worker
-			System.err.printf("Something went terribly wrong\n");
+			System.out.printf("Something went terribly wrong\n");
 			System.exit(-1);
 		}
 	}

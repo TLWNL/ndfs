@@ -50,7 +50,7 @@ public class NNDFS implements NDFS {
         for(Thread w : this.threads){
             w.start();
         }
-
+        System.out.printf("Currently waiting for workers to finish\n");
         //Grab the results from workers, this now immediately executing, so way before the
         //workers are actually done :/, so its just gonna return false until we make it wait
         boolean done = false;
@@ -59,6 +59,8 @@ public class NNDFS implements NDFS {
         /*for(Thread w : this.threads){
             w.interrupt();
         }*/
+        System.out.printf("Retrieving result\n");
+        
         ////////////////////////System.out.printf("Worker 0 is done\n");
         return Worker.getResult();
     }
