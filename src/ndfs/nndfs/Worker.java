@@ -17,8 +17,6 @@ public class Worker {
     private final Graph graph;
     private final Colors colors = new Colors();
     private boolean result = false;
-    private int blue_count = 0;
-    private int red_count = 0;
 
     // Throwing an exception is a convenient way to cut off the search in case a
     // cycle is found.
@@ -40,7 +38,6 @@ public class Worker {
     }
 
     private void dfsRed(State s) throws CycleFoundException {
-        red_count++;
         for (State t : graph.post(s)) {
             if (colors.hasColor(t, Color.CYAN)) {
                 //System.out.printf("bc=%d  rc=%d when accept cycle is detected\n", blue_count, red_count);
@@ -53,7 +50,6 @@ public class Worker {
     }
 
     private void dfsBlue(State s) throws CycleFoundException {
-        blue_count++;
         colors.color(s, Color.CYAN);
         for (State t : graph.post(s)) {
             if (colors.hasColor(t, Color.WHITE)) {
@@ -74,11 +70,10 @@ public class Worker {
     }
 
     public void run() {
+        System.out.printf("Thread running\n");
         try {
             nndfs(graph.getInitialState());
-            //System.out.printf("bc=%d  rc=%d\n", blue_count, red_count);
         } catch (CycleFoundException e) {
-            //System.out.printf("bc=%d  rc=%d\n", blue_count, red_count);
             result = true;
         }
     }

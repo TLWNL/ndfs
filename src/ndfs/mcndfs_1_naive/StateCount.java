@@ -7,50 +7,68 @@ import java.util.concurrent.*;
 
 //A lock has to be used when interacting with the StateCount
 public class StateCount{
-	private static final ConcurrentMap<State, AtomicInteger> map = new ConcurrentHashMap<State, AtomicInteger>();
+	private final HashMap<State, AtomicInteger> map;
     
 
 	public StateCount(){
+		map = new HashMap<State, AtomicInteger>();
 	}
 
-	//Increments the count variable indicating threads at State s
+	/**
+     * Increments the count of a state 1
+     * where count indicates the number of threads that invoked dfsRed on that state and have not yet returned 
+     *
+     * @param state
+     *            the state to increment the count of
+     *
+     */
 	public void increment(State s){
 		if(map.containsKey(s)){
 			AtomicInteger newStateCount = new AtomicInteger(map.get(s).get() + 1);
-			////////////////////////System.out.printf("Before incr: ");
-			////////////////////////System.out.println(map.values());
 			map.replace(s, newStateCount);
-			////////////////////////System.out.printf("After incr: ");
-			////////////////////////System.out.println(map.values());
 		} else{
 			AtomicInteger stateCount = new AtomicInteger(1);
 			map.put(s, stateCount);
-			////////////////////////System.out.printf("After add: ");
-			////////////////////////System.out.println(map.values());
 		}
 	}
 
-	//Decrements the count variable indicating threads at State s
+	/**
+     * Decrements the count of a state by 1
+     * where count indicates the number of threads that invoked dfsRed on that state and have not yet returned 
+     *
+     * @param state
+     *            the state to increment the count of
+     *
+     */
 	public void decrement(State s){
 		if(map.containsKey(s)){
 			AtomicInteger newStateCount = new AtomicInteger(map.get(s).get() - 1);
-			////////////////////////System.out.printf("Before decr: ");
-			////////////////////////System.out.println(map.values());
-			map.replace(s, newStateCount);
-			////////////////////////System.out.printf("After decr: ");
-			////////////////////////System.out.println(map.values());
+			if(newStateCount.get() == 0){
+				map.remove(s);
+			} else {
+				map.replace(s, newStateCount);
+			}
 		} else{ //This should never be able to occur, if it does, we are doing something wrong in Worker
 			System.out.printf("Something went terribly wrong\n");
 			System.exit(-1);
 		}
 	}
 
-	//Returns the current count indicating number of threads at State s
+	/**
+     * Returns the count of the specified state, if the state is not stored in the hashmap
+     * it means that the count is essentially 0, no threads are currently in dfsRed on that state
+     *
+     * @param state
+     *            the state to increment the count of
+     *
+     * @return the count of the specified state
+     */
 	public int currentCount(State s){
-		if(map.containsKey(s)){
+		AtomicInteger count = map.get(s);
+		if(count != null){
 			//System.out.println(map.values());
-			return map.get(s).get();
+			return count.get();
 		}
-		return -1;
+		return 0;
 	}	
 }

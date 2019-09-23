@@ -54,7 +54,6 @@ public class NDFSFactory {
      */
     public static NDFS createMCNDFS(File promelaFile, int nrWorkers,
             String version) throws Exception {
-        System.out.println("Garbage");
         String className = "ndfs.mcndfs_" + version + ".NNDFS";
 
         Class<?> mcndfsClass = Class.forName(className);

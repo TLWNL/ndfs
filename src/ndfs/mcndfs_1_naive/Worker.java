@@ -7,6 +7,7 @@ import java.io.PrintStream;
 import graph.Graph;
 import graph.GraphFactory;
 import graph.State;
+import java.util.*;
 import java.util.concurrent.locks.*;
 import java.util.concurrent.atomic.*;
 
@@ -21,10 +22,12 @@ public class Worker implements Runnable{
     private int blue_count = 0;
     private int red_count = 0;
     private int prev_b_count = 0;
-    private int prev_r_count = 0;
+    private int prev_r_count = 0;*/
     /****************For Debugging*****************/
 
-    //This bad boi is for shared count
+    //StateCount is custom class that provides a hashmap, maybe we can combine the attributes
+    //of this with where we store whether a state is red, suppose we could also try synchronized blocks
+    //inside the methods of StateCount and Colors, then we might be able to reduce waiting times more
     private static final StateCount stateCount = new StateCount();
     private static final Lock lock = new ReentrantLock();
     private static final Condition isZero = lock.newCondition();
@@ -32,11 +35,13 @@ public class Worker implements Runnable{
     private static final Lock doneLock = new ReentrantLock();
     private static final Condition isDoneCond = doneLock.newCondition();
 
+    private static final Lock redLock = new ReentrantLock();
+    private static final Condition redFreeCond = redLock.newCondition();
+
     private final Graph graph;
-    private static final Colors globalColors = new Colors();
-    private final Colors colors = new Colors(); //For blue dfs
-    private final Colors pink = new Colors(); //For pink in red dfs
-    //private static int stateCount = 0;
+    private static final Colors globalColors = new Colors(); //For red dfs
+    private final Colors colors = new Colors(); //For blue dfs (and for storing pink, but this is separated from WHITE, CYAN, BLUE)
+
     private static AtomicBoolean result = new AtomicBoolean(false);
 
     private static AtomicBoolean isDone = new AtomicBoolean(false);
@@ -47,6 +52,10 @@ public class Worker implements Runnable{
     // cycle is found.
     private static class CycleFoundException extends Exception {
         private static final long serialVersionUID = 1L;
+    }
+
+    private static class GraphTraversedException extends Exception {
+        private static final long serialVersionUID = 2L;
     }
 
     /**
@@ -61,92 +70,64 @@ public class Worker implements Runnable{
         this.graph = GraphFactory.createGraph(promelaFile);
         this.id = workerId;
 
-        /*String fileName = "./out" + this.id + ".txt";
-        this.fileOut = new PrintStream(fileName);*/
     }
 
-    //Add an extra parameter: int N indicating which direction a thread should take
-    //when traversing the state space
-    private void dfsRed(State s, int workerId) throws CycleFoundException {
-        //fileOut.printf("Thread %d entered dfsRed: [count:%d]\n", this.id, red_count);
-        /*
-            Pseudo:
-            s.pink[i] = true; 
-            for(t in post_r_i(s)) do{
-            -- With post_r_i we denote the permutation of sucessors used in the blue/red DFS by worker i.
-                if(t.color[i] == CYAN)
-                    report cycle and exit;
-                if(!t.pink[i] && !t.red[i])
-                    dfs_red(t, i);
-            }
-            if(s.isAccepting()){
-                s.count--;
-                while(!s.count == 0);
-            }
-            s.red = true;
-            s.pink[i] = false;
-        */
-        pink.color(s, Color.PINK);
-        for (State t : graph.post(s)) {
+    private void dfsRed(State s, int workerId) throws CycleFoundException, GraphTraversedException {
+        //Makes sure that thread is terminated if one is already finished
+        if(Thread.currentThread().isInterrupted()){
+            throw new GraphTraversedException();
+        }
+
+        colors.color(s, Color.PINK);
+        for (State t : permutate(graph.post(s))) {
             if (colors.hasColor(t, Color.CYAN)) {
-                //System.out.printf("bc=%d  rc=%d when accept cycle is detected\n", blue_count, red_count);
                 throw new CycleFoundException();
-            } else if (!pink.hasColor(t, Color.PINK) && !globalColors.hasColor(t, Color.RED)) {
+
+            } else if (!colors.hasColor(t, Color.PINK) && !isRed(t, Color.RED)) {
                 dfsRed(t, workerId);
             }
         }
+        
         if (s.isAccepting()) {
-            
             lock.lock();
-            try{
-                //int preValue = stateCount.currentCount(s);
+            try{                
                 stateCount.decrement(s);
                 int postValue = stateCount.currentCount(s);
                 if(postValue == 0)
                     isZero.signalAll();
-                
-                //fileOut.printf("Thread %d: iteration [%d] gonna wait for StateCount == 0\n", this.id, red_count);
-                while(stateCount.currentCount(s) != 0 && !isDone.get()){
-                    //fileOut.printf("Thread %d encountered current StateCount: %d\n", this.id, stateCount.currentCount(s));
+                while(stateCount.currentCount(s) != 0 ){
                     isZero.await(); 
                 }
-                //fileOut.printf("Thread %d: iteration [%d] done waiting for StateCount == 0\n", this.id, red_count);
-                //System.out.printf("Worker %d DONE waiting, count == 0\n", this.id);
             } catch(InterruptedException e){
                 e.printStackTrace();
             } finally{
                 lock.unlock();
             }
         }
-        globalColors.color(s, Color.RED);
-        pink.color(s, Color.WHITE);
+        
+        
+        redLock.lock();
+        try{
+            globalColors.color(s, Color.RED);
+        } finally{
+            redLock.unlock();
+        }
+        
+        colors.color(s, Color.NOTPINK);
     }
 
-    //Add an extra parameter: int i indicating which direction a thread should take
-    //when traversing the state space
-    private void dfsBlue(State s, int workerId) throws CycleFoundException {
-        //fileOut.printf("Thread %d entered dfsBlue: [count:%d]\n", this.id, blue_count);
-        /*
-            Pseudo:
-            s.color[i] = CYAN
-            for all t in post_b_i() do:
-                if(t.color[i] == white && !red)
-                    report cycle and exit;
-            if(s.isAccepting()){
-                s.count++;
-                dfs_red(s, i);
-            }
-            s.color[i] = BLUE;
-        */
-        // Sets the color of the local hashmap to cyan
+    private void dfsBlue(State s, int workerId) throws CycleFoundException, GraphTraversedException {
+        if(Thread.currentThread().isInterrupted()){
+            throw new GraphTraversedException();
+        }
         colors.color(s, Color.CYAN);
-        for (State t : graph.post(s)) {
-            // Should check the local hashmap for the thread for white and the global for red!
-            if (colors.hasColor(t, Color.WHITE) && !globalColors.hasColor(t, Color.RED)) {
+        for (State t : permutate(graph.post(s))) {
+            if (colors.hasColor(t, Color.WHITE) && !isRed(t, Color.RED)) {
+
                 dfsBlue(t, workerId);
             }
         }
-        if (s.isAccepting()) {
+        if (s.isAccepting()) {    
             lock.lock();
             try{
                 stateCount.increment(s);
@@ -155,56 +136,68 @@ public class Worker implements Runnable{
 
             }
             dfsRed(s, workerId);
+        }
 
-        } 
         colors.color(s, Color.BLUE);
     }
 
-    //Add an extra parameter: int N indicating which direction a thread should take
-    //when traversing the state space
-    private void nndfs(State s, int workerId) throws CycleFoundException {
+    private void nndfs(State s, int workerId) throws CycleFoundException, GraphTraversedException {
         dfsBlue(s, workerId);
     }
 
     @Override
     public void run() {
-        System.out.printf("Running thread %d now...\n", this.id);
-        try {            
+        try {
             nndfs(graph.getInitialState(), this.id); 
             doneLock.lock();
             try{
                 isDone.set(true);
-                ////////////////////////System.out.printf("Result in thread %d == %s", this.id, isDone.get());
             } finally{
                 doneLock.unlock();
-                System.out.printf("Thread %d has terminated successfully\n", this.id);
             }
         } catch (CycleFoundException e) {
             doneLock.lock();
             try{
                 result.set(true);
                 isDone.set(true);
-                //isDoneCond.signalAll();
-                ////////////////////////System.out.printf("Result in thread %d == %s", this.id, isDone.get());
-                //System.out.printf("This happen?\n");
             } finally{
                 doneLock.unlock();
-                System.out.printf("Thread %d has terminated successfully\n", this.id);
-                //System.out.printf("This happen too?\n");
             }
-            
-
+        } catch(GraphTraversedException e){
+            //Simply exit, as some other thread has reported the result
         } catch (Exception e){
-            ////////////////////////System.out.println("Unexpected exception was caught");
+            System.out.println("Unexpected exception was caught");
         }
-        /*catch(InterruptedException e){
-            //ignore
-        }*/
-        ////////////////////////System.out.printf("Thread %d has terminated with bc=%d and rc=%d\n", this.id, blue_count, red_count);
+    }
+
+    private boolean isRed(State s, Color c){
+        boolean ret;
+        redLock.lock();
+        try{
+            ret = globalColors.hasColor(s, c);
+        } finally{
+            redLock.unlock();
+        }
+        return ret;
+    }
+
+    //This performs exceptionally terrible
+    private List<State> permutate(List<State> list){
+        int size = list.size();
+        List<State> newList;
+        if(size <= 1){
+            return list;
+        } else if(size == 2){
+            if(this.id % 2 == 1)
+                Collections.swap(list, 0, 1);
+        } else{
+            Collections.shuffle(list, new Random(this.id));
+        }
+        return list;
     }
 
     public static boolean getResult() {
-        System.out.printf("Done = %s, Result: %s\n", isDone, result);
+        //System.out.printf("Done = %s, Result: %s\n", isDone, result);
         boolean resultFinal;
         doneLock.lock();
         try{

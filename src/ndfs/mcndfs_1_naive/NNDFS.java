@@ -27,41 +27,36 @@ public class NNDFS implements NDFS {
 
     //Added nWorkers
     public NNDFS(File promelaFile, int nWorkers) throws FileNotFoundException {
-        //Need both Worker and Thread, cause Thread wont have the getResult(), and we need that badboi
-        //to grab that cyclefound bool
         this.length = nWorkers;
         this.threads = new Thread[nWorkers];
         this.workers = new Worker[nWorkers];
 
-        //Create the workers and threads (give the workers an id, maybe we can use that later for how 
-        // to traverse this shiet, but not sure yet if thats really necessary)
+        //Not sure how we can do this so storing the workers isnt necessary
         for(int i = 0; i < nWorkers; i++){
             this.workers[i] = new Worker(promelaFile, i);
 
             this.threads[i] = new Thread(this.workers[i]);
-            ////////////////////////System.out.printf("Worker %d stored\n", i);
         }
 
     }
 
     @Override
     public boolean ndfs() {
-        //Start them threads
+        //Start the threads
         for(Thread w : this.threads){
             w.start();
         }
-        System.out.printf("Currently waiting for workers to finish\n");
-        //Grab the results from workers, this now immediately executing, so way before the
-        //workers are actually done :/, so its just gonna return false until we make it wait
-        boolean done = false;
+
+        //System.out.printf("Currently waiting for workers to finish\n");
         while(!Worker.youDoneYet());
 
-        /*for(Thread w : this.threads){
-            w.interrupt();
-        }*/
-        System.out.printf("Retrieving result\n");
-        
-        ////////////////////////System.out.printf("Worker 0 is done\n");
+        for(Thread w: this.threads){
+            if(!w.isInterrupted()){
+                w.interrupt();
+            }
+        }
+
+        //System.out.printf("Retrieving result\n");
         return Worker.getResult();
     }
 }

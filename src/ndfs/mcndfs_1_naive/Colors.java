@@ -10,7 +10,7 @@ import graph.State;
  */
 public class Colors {
 
-    private final Map<State, Color> map = new HashMap<State, Color>();
+    private final Map<State, StateColor> map = new HashMap<State, StateColor>();
 
     /**
      * Returns <code>true</code> if the specified state has the specified color,
@@ -24,11 +24,32 @@ public class Colors {
      */
     public boolean hasColor(State state, Color color) {
 
-        // The initial color is white, and is not explicitly represented.
-        if (color == Color.WHITE) {
-            return map.get(state) == null;
-        } else {
-            return map.get(state) == color;
+        // Coloring the state PINK means that StateColor.pink (boolean) will be queried
+        // This is quite a mess right now, no clear structure in how this works
+        // If we do end up making a separate class for storing
+        if(color == Color.PINK){
+            StateColor sc = map.get(state);
+            if(sc == null){
+                return false;
+            }
+            return sc.getPinkBool();
+
+        } else{
+            if (color == Color.WHITE || color == Color.RED) {
+                StateColor sc = map.get(state);
+                if(sc == null && color == Color.WHITE){
+                    return true;
+                } else if (sc == null){
+                    return false;
+                }
+                return sc.getColor() == color;
+            } else {
+                StateColor sc = map.get(state);
+                if(sc == null){
+                    return false;
+                }
+                return sc.getColor() == color;
+            }
         }
     }
 
@@ -41,10 +62,35 @@ public class Colors {
      *            color to give to the state.
      */
     public void color(State state, Color color) {
-        if (color == Color.WHITE) {
-            map.remove(state);
+        StateColor sc = new StateColor(color, false);
+
+        if(color == Color.PINK){
+            sc.setPinkBool(true);
+            StateColor temp = map.get(state);
+
+            if(temp == null){
+                map.put(state, sc);
+            } else{
+                temp.setPinkBool(true);
+                map.replace(state, temp);
+            }
         } else {
-            map.put(state, color);
+            StateColor temp = map.get(state);
+
+            if(color == Color.NOTPINK){
+                temp.setPinkBool(false);
+                map.replace(state, temp);
+                return;
+            } else{
+                if(temp == null){
+                    map.put(state, sc);
+                } else {
+                    temp.setColor(color);
+                    map.replace(state, temp);
+                }
+            }
+            
+            
         }
     }
 }
