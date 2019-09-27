@@ -32,7 +32,7 @@ public class Worker implements Runnable{
     private static final StateCount stateCount = new StateCount();
     private static final Lock lock = new ReentrantLock();
     private static final Condition isZero = lock.newCondition();
-    
+
     private static final Lock doneLock = new ReentrantLock();
     private static final Condition isDoneCond = doneLock.newCondition();
 
@@ -102,20 +102,22 @@ public class Worker implements Runnable{
         }
         
         if(s.isAccepting()) {
-            lock.lock();
-            try{                
+//            lock.lock();
+//            try{
                 stateCount.decrement(s);
-                int postValue = stateCount.currentCount(s);
-                if(postValue == 0)
+//                int postValue = stateCount.currentCount(s);
+                if(stateCount.currentCount(s) == 0)
                     isZero.signalAll();
                 while(stateCount.currentCount(s) != 0 ){
                     isZero.await();
                 }
-            } catch(InterruptedException e){
-                e.printStackTrace();
-            } finally{
-                lock.unlock();
-            }
+//            }
+//        catch(InterruptedException e){
+//                e.printStackTrace();
+//            }
+////        finally{
+//                lock.unlock();
+//            }
         }
         
         
@@ -151,7 +153,7 @@ public class Worker implements Runnable{
                 dfsBlue(t, workerId);
             }
         }
-        if (s.isAccepting()) {    
+        if (s.isAccepting()) {
             lock.lock();
             try{
                 stateCount.increment(s);
@@ -174,7 +176,7 @@ public class Worker implements Runnable{
     @Override
     public void run() {
         try {
-            nndfs(graph.getInitialState(), this.id); 
+            nndfs(graph.getInitialState(), this.id);
             doneLock.lock();
             try{
                 isDone.set(true);
