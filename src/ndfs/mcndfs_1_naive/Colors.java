@@ -26,7 +26,7 @@ public class Colors {
 
         // Coloring the state PINK means that StateColor.pink (boolean) will be queried
         // This is quite a mess right now, no clear structure in how this works
-        // If we do end up making a separate class for storing
+        // Will certainly split this and rewrite this later, its probably also slower for setting red
         if(color == Color.PINK){
             StateColor sc = map.get(state);
             if(sc == null){

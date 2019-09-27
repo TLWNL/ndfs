@@ -6,11 +6,10 @@ package ndfs.mcndfs_1_naive;
  * in separate variables, due to the locality of the combination of these (and due to it being inherently sequential)
  * these two will never interfere
  *
- * Does allow for RED to be stored, but this is done independently from where the combination mentioned above is stored,
- * we can always create an extra class specifically for storing RED, but this would be mostly to
+ * Currently also allows for RED to be stored, but this is done independently from where the combination mentioned above is stored,
+ * we will create an extra class specifically for storing RED, mostly to
  * 1. reduce the amount of memory used (now its this complete object just for storing RED)
  * 2. improving readability of code
- * It would be just storing a boolean value alongside the state
  */
 public class StateColor {	
 	private Color color = Color.WHITE;
@@ -28,10 +27,21 @@ public class StateColor {
 		this.pink = b;
 	}
 
+	/**
+	 * Function that returns the color of of this object
+	 *
+	 * @return Color enum
+	 */ 
 	public Color getColor(){
 		return this.color;
 	}
 
+	/**
+	 * Set the color of this object to a different color, probly not necessary
+	 *
+	 * @param c Color of this StateColor object
+	 *
+	 */
 	public void setColor(Color c){
 		this.color = c;
 	}

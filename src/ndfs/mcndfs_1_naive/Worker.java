@@ -8,6 +8,7 @@ import graph.Graph;
 import graph.GraphFactory;
 import graph.State;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
 import java.util.concurrent.atomic.*;
 
@@ -18,11 +19,11 @@ import java.util.concurrent.atomic.*;
  */
 public class Worker implements Runnable{
     /****************For Debugging*****************/
-    /*private final PrintStream fileOut;
+    //private final PrintStream fileOut;
     private int blue_count = 0;
     private int red_count = 0;
     private int prev_b_count = 0;
-    private int prev_r_count = 0;*/
+    //private int prev_r_count = 0;*/
     /****************For Debugging*****************/
 
     //StateCount is custom class that provides a hashmap, maybe we can combine the attributes
@@ -35,11 +36,13 @@ public class Worker implements Runnable{
     private static final Lock doneLock = new ReentrantLock();
     private static final Condition isDoneCond = doneLock.newCondition();
 
+
     private static final Lock redLock = new ReentrantLock();
     private static final Condition redFreeCond = redLock.newCondition();
 
     private final Graph graph;
     private static final Colors globalColors = new Colors(); //For red dfs
+    private static final GlobalStates gS = new GlobalStates();
     private final Colors colors = new Colors(); //For blue dfs (and for storing pink, but this is separated from WHITE, CYAN, BLUE)
 
     private static AtomicBoolean result = new AtomicBoolean(false);
@@ -47,6 +50,10 @@ public class Worker implements Runnable{
     private static AtomicBoolean isDone = new AtomicBoolean(false);
 
     private final int id;
+
+
+
+    //private static final ConcurrentHashMap<State, AtomicBoolean> map = new ConcurrentHashMap<State, AtomicBoolean>();
 
     // Throwing an exception is a convenient way to cut off the search in case a
     // cycle is found.
@@ -73,6 +80,7 @@ public class Worker implements Runnable{
     }
 
     private void dfsRed(State s, int workerId) throws CycleFoundException, GraphTraversedException {
+        //red_count++;
         //Makes sure that thread is terminated if one is already finished
         if(Thread.currentThread().isInterrupted()){
             throw new GraphTraversedException();
@@ -83,12 +91,17 @@ public class Worker implements Runnable{
             if (colors.hasColor(t, Color.CYAN)) {
                 throw new CycleFoundException();
 
-            } else if (!colors.hasColor(t, Color.PINK) && !isRed(t, Color.RED)) {
+            //Previously had to call the Worker.isRed function so to lock the var, thats not necessary
+            //anymore, now can just straight up query GlobalStates class for some state t
+            //this doesnt even use a lock, concurrent reads may have to wait if the region of the hashmap
+            //in which state t lies, is currently being written, otherwise, all threads can grab the value
+            //at the same time 
+            } else if(!colors.hasColor(t, Color.PINK) && !gS.isRed(t)){
                 dfsRed(t, workerId);
             }
         }
         
-        if (s.isAccepting()) {
+        if(s.isAccepting()) {
             lock.lock();
             try{                
                 stateCount.decrement(s);
@@ -96,7 +109,7 @@ public class Worker implements Runnable{
                 if(postValue == 0)
                     isZero.signalAll();
                 while(stateCount.currentCount(s) != 0 ){
-                    isZero.await(); 
+                    isZero.await();
                 }
             } catch(InterruptedException e){
                 e.printStackTrace();
@@ -106,24 +119,35 @@ public class Worker implements Runnable{
         }
         
         
-        redLock.lock();
+        /*redLock.lock();
         try{
-            globalColors.color(s, Color.RED);
+            //globalColors.color(s, Color.RED);
+            setRed(s, true);
         } finally{
             redLock.unlock();
-        }
+        }*/
+        //instead of having the lock here, now the locking is done deep inside hashmap
+        //which essentially places the locks really barely around the writes, instead of 
+        //having the locks around invocation of several more methods
+        gS.setRed(s);
         
         colors.color(s, Color.NOTPINK);
     }
 
     private void dfsBlue(State s, int workerId) throws CycleFoundException, GraphTraversedException {
+        blue_count++;
+        if(prev_b_count < blue_count - 100000){
+            System.out.printf("Thread %d, bc = %d\n", this.id, blue_count);
+            prev_b_count = blue_count;
+        }
+
         if(Thread.currentThread().isInterrupted()){
             throw new GraphTraversedException();
         }
         colors.color(s, Color.CYAN);
         for (State t : permutate(graph.post(s))) {
-            if (colors.hasColor(t, Color.WHITE) && !isRed(t, Color.RED)) {
-
+            //same here eh
+            if(colors.hasColor(t, Color.WHITE) && !gS.isRed(t)){
                 dfsBlue(t, workerId);
             }
         }
@@ -142,7 +166,9 @@ public class Worker implements Runnable{
     }
 
     private void nndfs(State s, int workerId) throws CycleFoundException, GraphTraversedException {
+        System.out.printf("Thread %d started\n", this.id);
         dfsBlue(s, workerId);
+        //System.out.printf("Thread %d ended, bc=%d rc=%d\n", this.id, this.blue_count, this.red_count);
     }
 
     @Override
@@ -158,6 +184,7 @@ public class Worker implements Runnable{
         } catch (CycleFoundException e) {
             doneLock.lock();
             try{
+                //System.out.printf("Setting result to true\n");
                 result.set(true);
                 isDone.set(true);
             } finally{
@@ -165,21 +192,25 @@ public class Worker implements Runnable{
             }
         } catch(GraphTraversedException e){
             //Simply exit, as some other thread has reported the result
+            //System.out.printf("Thread %d is done\n", this.id);
         } catch (Exception e){
             System.out.println("Unexpected exception was caught");
         }
     }
 
-    private boolean isRed(State s, Color c){
+    /*private boolean isRed(State s, Color c){
         boolean ret;
+        System.out.printf("About to check red\n");
         redLock.lock();
         try{
-            ret = globalColors.hasColor(s, c);
+            //ret = globalColors.hasColor(s, c);
+            ret = gS.isRed(s);
+            System.out.printf("Red: %s\n", ret);
         } finally{
             redLock.unlock();
         }
         return ret;
-    }
+    }*/
 
     //This performs exceptionally terrible
     private List<State> permutate(List<State> list){
@@ -219,4 +250,22 @@ public class Worker implements Runnable{
         //System.out.println("Going hard in this bitch");
         return ret;
     }
+
+
+    /*public static boolean isRed(State s) {
+        if(map.containsKey(s)){
+            return map.get(s).get();
+        }
+        return false;
+    }
+
+    public static void setRed(State s){
+        if(map.containsKey(s)){
+            map.get(s).getAndSet(true);
+        } else{
+            map.put(s, new AtomicBoolean(true));
+        }
+    }*/
+
+
 }
