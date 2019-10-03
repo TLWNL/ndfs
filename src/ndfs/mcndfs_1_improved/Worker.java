@@ -1,4 +1,4 @@
-package ndfs.mcndfs_1_naive;
+package ndfs.mcndfs_1_improved;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,9 +8,11 @@ import graph.Graph;
 import graph.GraphFactory;
 import graph.State;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
 import java.util.concurrent.atomic.*;
 
+import java.io.IOException;
 
 /**
  * This is a straightforward implementation of Figure 1 of
@@ -19,11 +21,11 @@ import java.util.concurrent.atomic.*;
  */
 public class Worker implements Runnable{
     /****************For Debugging*****************/
-    /*private final PrintStream fileOut;
-    private int blue_count = 0;
-    private int red_count = 0;
-    private int prev_b_count = 0;
-    private int prev_r_count = 0;*/
+    //private final PrintStream fileOut;
+    //private int blue_count = 0;
+    //private int red_count = 0;
+    //private int prev_b_count = 0;
+    ///private int prev_r_count = 0;*/
     /****************For Debugging*****************/
 
     //StateCount is custom class that provides a hashmap, maybe we can combine the attributes
@@ -39,17 +41,22 @@ public class Worker implements Runnable{
     private static final Lock redLock = new ReentrantLock();
 
     private final Graph graph;
-    private static final GlobalColors globalColors = new GlobalColors(); //For red dfs
+    private static final GlobalColors globalColors = new GlobalColors();
+    //private static final GlobalColors globalColors = new GlobalColors();
     private final Colors colors = new Colors(); //For blue dfs (and for storing pink, but this is separated from WHITE, CYAN, BLUE)
 
+    private static int threadsN = 0;
     private static AtomicBoolean result = new AtomicBoolean(false);
 
     private static AtomicBoolean isDone = new AtomicBoolean(false);
 
     private final int id;
-    private static int threadsN = 0;
-    private final Random seed;
-    private int seed2;
+    //private final Random seed;
+    //private int seed;
+
+
+
+    //private static final ConcurrentHashMap<State, AtomicBoolean> map = new ConcurrentHashMap<State, AtomicBoolean>();
 
     // Throwing an exception is a convenient way to cut off the search in case a
     // cycle is found.
@@ -72,11 +79,12 @@ public class Worker implements Runnable{
     public Worker(File promelaFile, int workerId) throws FileNotFoundException {
         this.graph = GraphFactory.createGraph(promelaFile);
         this.id = workerId;
-        this.seed = new Random(workerId);
+        //this.seed = new Random(workerId);
         threadsN++;
     }
 
-    private void dfsRed(State s, int workerId) throws CycleFoundException, GraphTraversedException {
+    private void dfsRed(State s) throws CycleFoundException, GraphTraversedException {
+        //red_count++;
         //Makes sure that thread is terminated if one is already finished
         if(Thread.currentThread().isInterrupted()){
             throw new GraphTraversedException();
@@ -87,75 +95,118 @@ public class Worker implements Runnable{
             if (colors.hasColor(t, Color.CYAN)) {
                 throw new CycleFoundException();
 
-            } else if (!colors.hasColor(t, Color.PINK) && !isRed(t)) {
-                dfsRed(t, workerId);
+            //Previously had to call the Worker.isRed function so to lock the var, thats not necessary
+            //anymore, now can just straight up query GlobalStates class for some state t
+            //this doesnt even use a lock, concurrent reads may have to wait if the region of the hashmap
+            //in which state t lies, is currently being written, otherwise, all threads can grab the value
+            //at the same time 
+            } else if(!colors.hasColor(t, Color.PINK) && !globalColors.isRed(t)){
+                dfsRed(t);
             }
         }
         
         if(s.isAccepting()) {
-            lock.lock();
+            /*lock.lock();
             try{                
                 stateCount.decrement(s);
-                //int postValue = stateCount.currentCount(s);
-                if(stateCount.currentCount(s) == 0)
+                int postValue = stateCount.currentCount(s);
+                if(postValue == 0)
                     isZero.signalAll();
                 while(stateCount.currentCount(s) != 0 ){
                     isZero.await();
                 }
             } catch(InterruptedException e){
                 e.printStackTrace();
-                //could look into just rethrowing e, but not sure what they want
-                throw new GraphTraversedException();
+            } finally{
+                lock.unlock();
+            }*/
+
+            stateCount.decrement(s);
+            lock.lock();
+            try{
+                if(stateCount.currentCount(s) == 0)
+                    isZero.signalAll();
+                while(stateCount.currentCount(s) != 0)
+                    isZero.await();
+            } catch(InterruptedException e){
+                System.out.printf("Essentially garbage\n");
             } finally{
                 lock.unlock();
             }
+            //while(stateCount.currentCount(s) != 0); 
+
         }
-        
-        
-        redLock.lock();
-        try{
-            globalColors.setRed(s);
-        } finally{
-            redLock.unlock();
-        }
+        //instead of having the lock here, now the locking is done deep inside hashmap
+        //which essentially places the locks really barely around the writes, instead of 
+        //having the locks around invocation of several more methods
+        globalColors.setRed(s);
         
         colors.color(s, Color.NOTPINK);
     }
 
-    private void dfsBlue(State s, int workerId) throws CycleFoundException, GraphTraversedException {
+    private void dfsBlue(State s) throws CycleFoundException, GraphTraversedException {
+        //long start, end;
+        /*blue_count++;
+        if(prev_b_count < blue_count - 100000){
+            System.out.printf("Thread %d, bc = %d\n", this.id, blue_count);
+            prev_b_count = blue_count;
+        }*/
+        //System.out.printf("Post function:\n"); continueExecution();
+        //start = System.nanoTime();
+        //graph.post(s);
+        //end = System.nanoTime();
+        //System.out.printf("[%d nanosec]\n", end - start);
+
+        //System.out.printf("Section 1:\n"); continueExecution();
+        //start = System.nanoTime();
         if(Thread.currentThread().isInterrupted()){
             throw new GraphTraversedException();
         }
+        //end = System.nanoTime();
 
+        //System.out.printf("[%d nanosec]\nSection 2:\n", end-start); continueExecution();
+        //start = System.nanoTime();
         colors.color(s, Color.CYAN);
+        //end = System.nanoTime();
+        //System.out.printf("[%d nanosec]\nSection 3:\n", end-start); continueExecution();
+        //start = System.nanoTime();
         for (State t : permutate(graph.post(s))) {
-            if (colors.hasColor(t, Color.WHITE) && !isRed(t)) {
-                dfsBlue(t, workerId);
+            //same here eh
+            //end = System.nanoTime();
+            //System.out.printf("[%d nanosec]\nSection 4:\n", end-start); continueExecution();
+            //start = System.nanoTime();
+            if(colors.hasColor(t, Color.WHITE) && !globalColors.isRed(t)){
+                //end = System.nanoTime();
+                //System.out.printf("[%d nanosec]\nSection 5:\n", end-start); continueExecution();
+                dfsBlue(t);
             }
         }
-        if (s.isAccepting()) {    
-            lock.lock();
+        if (s.isAccepting()) {
+            /*lock.lock();
             try{
                 stateCount.increment(s);
             } finally{
                 lock.unlock();
 
-            }
-            dfsRed(s, workerId);
+            }*/
+            stateCount.increment(s);
+            dfsRed(s);
         }
 
         colors.color(s, Color.BLUE);
     }
 
     private void nndfs(State s, int workerId) throws CycleFoundException, GraphTraversedException {
-        dfsBlue(s, workerId);
+        System.out.printf("Thread %d started\n", this.id);
+        dfsBlue(s);
+        //System.out.printf("Thread %d ended, bc=%d rc=%d\n", this.id, this.blue_count, this.red_count);
     }
 
     @Override
     public void run() {
         try {
-            this.seed2 = threadsN * (this.id + 1);
-            nndfs(graph.getInitialState(), this.id);
+            //this.seed = threadsN.get() * (this.id + 1);
+            nndfs(graph.getInitialState(), this.id); 
             doneLock.lock();
             try{
                 isDone.set(true);
@@ -166,6 +217,7 @@ public class Worker implements Runnable{
         } catch (CycleFoundException e) {
             doneLock.lock();
             try{
+                //System.out.printf("Setting result to true\n");
                 result.set(true);
                 isDone.set(true);
                 isDoneCond.signalAll();
@@ -174,49 +226,66 @@ public class Worker implements Runnable{
             }
         } catch(GraphTraversedException e){
             //Simply exit, as some other thread has reported the result
-            //Maybe something went terribly wrong tho
+            //System.out.printf("Thread %d is done\n", this.id);
         } catch (Exception e){
-            System.out.println("Unexpected exception was caught:\n");
+            System.out.println("Unexpected exception was caught");
             e.printStackTrace();
         }
     }
 
-    private boolean isRed(State s){
+    /*private boolean isRed(State s, Color c){
         boolean ret;
+        System.out.printf("About to check red\n");
         redLock.lock();
         try{
-            ret = globalColors.isRed(s);
+            //ret = globalColors.hasColor(s, c);
+            ret = gS.isRed(s);
+            System.out.printf("Red: %s\n", ret);
         } finally{
             redLock.unlock();
         }
         return ret;
-    }
+    }*/
 
     //This performs exceptionally terrible
     private List<State> permutate(List<State> list){
-        /*System.out.printf("Press enter to start permutation\n");
+        /*long start, end;
+        System.out.printf("Press enter to start permutation\n");
+        continueExecution();
+        start = System.nanoTime();*/
+
+        int size = list.size();
+
+        /*if(size <= 1){
+            return list;
+        } else if(size == 2){
+            if(this.id % 2 == 1){
+                Collections.swap(list, 0, 1);
+            }
+        } else{
+            Collections.shuffle(list, this.seed);
+            //Collections.rotate(list, size / threadsN.get() * (this.id + 1));
+        }
+        return list;*/
+        if(size <= 1){
+            //return list;
+        } else if(size == 2){
+            if(this.id % 2 == 1)
+                Collections.swap(list, 0, 1);
+        } else{
+            Collections.rotate(list, this.id == 0 ? 0 : (size / threadsN) * this.id);
+        }
+        /*end = System.nanoTime();
+        System.out.printf("Permutation took %d nanosec\n", end-start);*/
+        return list;
+    }
+
+    private void continueExecution(){
         try{
             System.in.read();
         } catch(IOException e){
             e.printStackTrace();
         }
-        long start = System.nanoTime();*/
-
-        int size = list.size();
-        //List<State> newList;
-        if(size <= 1){
-            //return list;
-            //Do nothing
-        } else if(size == 2){
-            if(this.id % 2 == 1)
-                Collections.swap(list, 0, 1);
-        } else{
-            //Collections.shuffle(list, this.seed);
-            Collections.rotate(list, size / threadsN * (this.id));
-        }
-        /*long end = System.nanoTime();
-        System.out.printf("Permutation of %d successors took %d nanoseconds\n", size, (end-start));*/
-        return list;
     }
 
     public static boolean getResult() {
@@ -231,13 +300,15 @@ public class Worker implements Runnable{
         return resultFinal;
     }
 
-    public static void youDoneYet() {
+    public static void youDoneYet(){
+        //boolean ret;
         doneLock.lock();
         try{
             while(isDone.get() != true)
                 isDoneCond.await();
         } catch(InterruptedException e){
             e.printStackTrace();
+            //Actually handle exception maybe
         } finally{
             doneLock.unlock();
         }

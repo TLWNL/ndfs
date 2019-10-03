@@ -1,4 +1,4 @@
-package ndfs.mcndfs_1_naive;
+package ndfs.mcndfs_1_improved;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -49,6 +49,7 @@ public class NNDFS implements NDFS {
 
         //System.out.printf("Currently waiting for workers to finish\n");
         Worker.youDoneYet();
+        //Worker.youDoneYet();
 
         for(Thread w: this.threads){
             if(!w.isInterrupted()){
@@ -56,15 +57,17 @@ public class NNDFS implements NDFS {
             }
         }
 
-        boolean ret = Worker.getResult();
-        //Wait for all threads to finish executing
-        for(Thread w: this.threads){
+        /**/
+        for(Thread w : this.threads){
             try{
                 w.join();
             } catch(InterruptedException e){
                 e.printStackTrace();
+                System.exit(-1);
             }
         }
-        return ret;
+
+        //System.out.printf("Retrieving result\n");
+        return Worker.getResult();
     }
 }

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-JAVA_CMD="java -server -Xss100M -Xmx8192M -cp lib/graph.jar:lib/spinja.jar:build/jar/ndfs.jar driver.Main $*"
+JAVA_CMD="java -server -Xss258M -Xmx8192M -cp lib/graph.jar:lib/spinja.jar:build/jar/ndfs.jar driver.Main $*"
 
 if  hostname -f | grep -q -e 'fs.\.cm\.cluster' ; then
   module load prun

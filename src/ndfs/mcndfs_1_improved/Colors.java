@@ -1,9 +1,10 @@
-package ndfs.mcndfs_1_naive;
+package ndfs.mcndfs_1_improved;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import graph.State;
+import java.util.concurrent.*;
 
 /**
  * This class provides a color map for graph states.
@@ -23,7 +24,6 @@ public class Colors {
      * @return whether the specified state has the specified color.
      */
     public boolean hasColor(State state, Color color) {
-        // Check if pink == true or false
         if(color == Color.PINK){
             StateColor sc = map.get(state);
             if(sc == null){
@@ -56,6 +56,34 @@ public class Colors {
      *            color to give to the state.
      */
     public void color(State state, Color color) {
+        /*StateColor sc = new StateColor(color, false);
+        
+        if(color == Color.PINK){
+            sc.setPinkBool(true);
+            StateColor temp = map.get(state);
+
+            if(temp == null){
+                map.put(state, sc);
+            } else{
+                temp.setPinkBool(true);
+            }
+        } else {
+            StateColor temp = map.get(state);
+
+            if(color == Color.NOTPINK){
+                temp.setPinkBool(false);
+                //map.replace(state, temp);
+                return;
+            } else{
+                if(temp == null){
+                    map.put(state, sc);
+                } else {
+                    temp.setColor(color);
+                    //map.replace(state, temp);
+                }
+            }
+        }*/
+
         StateColor sc = map.get(state);
         if(sc == null){
             switch(color){
@@ -72,13 +100,13 @@ public class Colors {
         } else {
             switch(color){
                 case PINK:
-                    map.get(state).setPinkBool(true);
+                    sc.setPinkBool(true);
                     break;
                 case NOTPINK:
-                    map.get(state).setPinkBool(false);
+                    sc.setPinkBool(false);
                     break;
                 default:
-                    map.get(state).setColor(color);
+                    sc.setColor(color);
                     break;
             }
         }

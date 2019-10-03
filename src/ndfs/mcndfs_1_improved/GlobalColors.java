@@ -1,4 +1,4 @@
-package ndfs.mcndfs_1_naive;
+package ndfs.mcndfs_1_improved;
 
 import graph.State;
 import java.util.concurrent.*;
@@ -15,10 +15,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  */
 
-public class GlobalStates{
+public class GlobalColors{
 	private final ConcurrentHashMap<State, AtomicBoolean> map = new ConcurrentHashMap<State, AtomicBoolean>();
 
-	
 	public boolean isRed(State s) {
 		if(map.containsKey(s)){
 			return map.get(s).get();
