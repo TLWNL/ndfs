@@ -1,12 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4fb8626e-ee00-4cd5-b2d4-53302068b9f9" name="Default Changelist" comment="" />
+    <list default="true" id="4fb8626e-ee00-4cd5-b2d4-53302068b9f9" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/ndfs.bat" beforeDir="false" afterPath="$PROJECT_DIR$/bin/ndfs.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/NDFSFactory.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/NDFSFactory.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/Color.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/Color.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/Colors.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/Colors.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/NNDFS.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/NNDFS.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/Worker$CycleFoundException.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/Worker$CycleFoundException.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/Worker.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/mcndfs_1_naive/Worker.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/ndfs/nndfs/Worker.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/ndfs/nndfs/Worker.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/jar/ndfs.jar" beforeDir="false" afterPath="$PROJECT_DIR$/build/jar/ndfs.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ndfs/mcndfs_1_improved/GlobalColors.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ndfs/mcndfs_1_improved/GlobalColors.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ndfs/mcndfs_1_improved/NNDFS.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ndfs/mcndfs_1_improved/NNDFS.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ndfs/mcndfs_1_improved/StateCount.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ndfs/mcndfs_1_improved/StateCount.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ndfs/mcndfs_1_improved/Worker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ndfs/mcndfs_1_improved/Worker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ndfs/mcndfs_1_naive/NNDFS.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ndfs/mcndfs_1_naive/NNDFS.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ndfs/mcndfs_1_naive/StateCount.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ndfs/mcndfs_1_naive/StateCount.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ndfs/mcndfs_1_naive/Worker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ndfs/mcndfs_1_naive/Worker.java" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DatabaseView">
+    <option name="SHOW_INTERMEDIATE" value="true" />
+    <option name="GROUP_DATA_SOURCES" value="true" />
+    <option name="GROUP_SCHEMA" value="true" />
+    <option name="GROUP_CONTENTS" value="false" />
+    <option name="SORT_POSITIONED" value="false" />
+    <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
+    <option name="HIDDEN_KINDS">
+      <set />
+    </option>
+    <expand />
+    <select />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -14,9 +46,10 @@
   </component>
   <component name="ProjectId" id="1QT7codFRVyh4gHHTJsTN6Tijcc" />
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="C:/Program Files/Git/bin/git.exe" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -48,6 +81,10 @@
       <option name="presentableId" value="Default" />
       <updated>1567782814092</updated>
       <workItem from="1567782819111" duration="4527000" />
+      <workItem from="1570359487369" duration="8616000" />
+      <workItem from="1570373177733" duration="4728000" />
+      <workItem from="1570478569061" duration="20208000" />
+      <workItem from="1570500147448" duration="3506000" />
     </task>
     <servers />
   </component>
@@ -59,7 +96,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>

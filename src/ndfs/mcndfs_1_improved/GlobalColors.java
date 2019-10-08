@@ -8,10 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Thread safe map that logs whether a state is red or not
  * As stated on manual page, allows for several threads to write at once (if hashes of the States are not
  * in the same region of the hashmap), otherwise the region is locked. Allows for any number of concurrent
- * readers.  
- *
- *
- *
+ * readers.
  *
  */
 

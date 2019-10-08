@@ -30,26 +30,23 @@ public class Worker implements Runnable{
     //of this with where we store whether a state is red, suppose we could also try synchronized blocks
     //inside the methods of StateCount and Colors, then we might be able to reduce waiting times more
     private static final StateCount stateCount = new StateCount();
+
     private static final Lock lock = new ReentrantLock();
     private static final Condition isZero = lock.newCondition();
-    
     private static final Lock doneLock = new ReentrantLock();
     private static final Condition isDoneCond = doneLock.newCondition();
-
     private static final Lock redLock = new ReentrantLock();
 
-    private final Graph graph;
     private static final GlobalColors globalColors = new GlobalColors(); //For red dfs
     private final Colors colors = new Colors(); //For blue dfs (and for storing pink, but this is separated from WHITE, CYAN, BLUE)
 
     private static AtomicBoolean result = new AtomicBoolean(false);
-
     private static AtomicBoolean isDone = new AtomicBoolean(false);
 
-    private final int id;
     private static int threadsN = 0;
-    private final Random seed;
-    private int seed2;
+    private Random seed;
+    private Graph graph;
+    private int id;
 
     // Throwing an exception is a convenient way to cut off the search in case a
     // cycle is found.
@@ -76,17 +73,16 @@ public class Worker implements Runnable{
         threadsN++;
     }
 
-    private void dfsRed(State s, int workerId) throws CycleFoundException, GraphTraversedException {
+    private void dfsRed(State s, int workerId) throws CycleFoundException{
         //Makes sure that thread is terminated if one is already finished
         if(Thread.currentThread().isInterrupted()){
-            throw new GraphTraversedException();
+            throw new CycleFoundException();
         }
 
         colors.color(s, Color.PINK);
         for (State t : permutate(graph.post(s))) {
             if (colors.hasColor(t, Color.CYAN)) {
                 throw new CycleFoundException();
-
             } else if (!colors.hasColor(t, Color.PINK) && !isRed(t)) {
                 dfsRed(t, workerId);
             }
@@ -96,7 +92,6 @@ public class Worker implements Runnable{
             lock.lock();
             try{                
                 stateCount.decrement(s);
-                //int postValue = stateCount.currentCount(s);
                 if(stateCount.currentCount(s) == 0)
                     isZero.signalAll();
                 while(stateCount.currentCount(s) != 0 ){
@@ -104,14 +99,12 @@ public class Worker implements Runnable{
                 }
             } catch(InterruptedException e){
                 e.printStackTrace();
-                //could look into just rethrowing e, but not sure what they want
-                throw new GraphTraversedException();
+                Thread.currentThread().interrupt();
             } finally{
                 lock.unlock();
             }
         }
-        
-        
+
         redLock.lock();
         try{
             globalColors.setRed(s);
@@ -139,7 +132,6 @@ public class Worker implements Runnable{
                 stateCount.increment(s);
             } finally{
                 lock.unlock();
-
             }
             dfsRed(s, workerId);
         }
@@ -147,14 +139,14 @@ public class Worker implements Runnable{
         colors.color(s, Color.BLUE);
     }
 
-    private void nndfs(State s, int workerId) throws CycleFoundException, GraphTraversedException {
+    private void nndfs(State s, int workerId) throws CycleFoundException, GraphTraversedException, InterruptedException {
         dfsBlue(s, workerId);
+        Thread.currentThread().interrupt();
     }
 
     @Override
     public void run() {
         try {
-            this.seed2 = threadsN * (this.id + 1);
             nndfs(graph.getInitialState(), this.id);
             doneLock.lock();
             try{
@@ -173,8 +165,8 @@ public class Worker implements Runnable{
                 doneLock.unlock();
             }
         } catch(GraphTraversedException e){
-            //Simply exit, as some other thread has reported the result
-            //Maybe something went terribly wrong tho
+            Thread.currentThread().interrupt();
+            return;
         } catch (Exception e){
             System.out.println("Unexpected exception was caught:\n");
             e.printStackTrace();
@@ -211,7 +203,6 @@ public class Worker implements Runnable{
             if(this.id % 2 == 1)
                 Collections.swap(list, 0, 1);
         } else{
-            //Collections.shuffle(list, this.seed);
             Collections.rotate(list, size / threadsN * (this.id));
         }
         /*long end = System.nanoTime();
@@ -220,7 +211,6 @@ public class Worker implements Runnable{
     }
 
     public static boolean getResult() {
-        //System.out.printf("Done = %s, Result: %s\n", isDone, result);
         boolean resultFinal;
         doneLock.lock();
         try{
@@ -237,7 +227,7 @@ public class Worker implements Runnable{
             while(isDone.get() != true)
                 isDoneCond.await();
         } catch(InterruptedException e){
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         } finally{
             doneLock.unlock();
         }

@@ -12,7 +12,7 @@ import ndfs.NDFS;
 public class NNDFS implements NDFS {
 
     private final Thread[] threads;
-    private final Worker[] workers;
+//    private final Worker[] workers;
     private final int length;
 
     /**
@@ -24,45 +24,31 @@ public class NNDFS implements NDFS {
      *             is thrown in case the file could not be read.
      */
 
-
-    //Added nWorkers
-    public NNDFS(File promelaFile, int nWorkers) throws FileNotFoundException {
+    public NNDFS(File promelaFile, int nWorkers) throws FileNotFoundException{
         this.length = nWorkers;
         this.threads = new Thread[nWorkers];
-        this.workers = new Worker[nWorkers];
 
-        //Not sure how we can do this so storing the workers isnt necessary
         for(int i = 0; i < nWorkers; i++){
-            this.workers[i] = new Worker(promelaFile, i);
-
-            this.threads[i] = new Thread(this.workers[i]);
+            this.threads[i] = new Thread(new Worker(promelaFile, i));
         }
-
     }
 
     @Override
-    public boolean ndfs() {
+    public boolean ndfs(){
         //Start the threads
         for(Thread w : this.threads){
             w.start();
         }
 
-        //System.out.printf("Currently waiting for workers to finish\n");
-        Worker.youDoneYet();
-
-        for(Thread w: this.threads){
-            if(!w.isInterrupted()){
-                w.interrupt();
-            }
-        }
-
         boolean ret = Worker.getResult();
+
         //Wait for all threads to finish executing
         for(Thread w: this.threads){
             try{
                 w.join();
             } catch(InterruptedException e){
                 e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
         }
         return ret;

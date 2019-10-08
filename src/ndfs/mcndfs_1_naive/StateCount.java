@@ -23,11 +23,8 @@ public class StateCount{
      */
 	public void increment(State s){
 		if(map.containsKey(s)){
-			//AtomicInteger newStateCount = new AtomicInteger(map.get(s).get() + 1);
-			//map.replace(s, newStateCount);
 			map.get(s).getAndIncrement();
 		} else {
-			//AtomicInteger stateCount = new AtomicInteger(1);
 			map.put(s, new AtomicInteger(1));
 		}
 	}
@@ -42,7 +39,6 @@ public class StateCount{
      */
 	public void decrement(State s){
 		if(map.containsKey(s)){
-			//AtomicInteger newStateCount = new AtomicInteger(map.get(s).get() - 1);
 			if(map.get(s).decrementAndGet() == 0){
 				map.remove(s);
 			}

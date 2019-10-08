@@ -8,14 +8,13 @@ import java.util.concurrent.*;
 //A lock has to be used when interacting with the StateCount
 public class StateCount{
 	private final ConcurrentHashMap<State, AtomicInteger> map;
-    
 
 	public StateCount(){
-		map = new ConcurrentHashMap<State, AtomicInteger>();
+		this.map = new ConcurrentHashMap<State, AtomicInteger>();
 	}
 
 	/**
-     * Increments the count of a state 1
+     * Increments the count of a state s
      * where count indicates the number of threads that invoked dfsRed on that state and have not yet returned 
      *
      * @param state
@@ -24,11 +23,8 @@ public class StateCount{
      */
 	public void increment(State s){
 		if(map.containsKey(s)){
-			//AtomicInteger newStateCount = new AtomicInteger(map.get(s).get() + 1);
-			//map.replace(s, newStateCount);
 			map.get(s).getAndIncrement();
 		} else{
-			//AtomicInteger stateCount = new AtomicInteger(1);
 			map.put(s, new AtomicInteger(1));
 		}
 	}
@@ -43,17 +39,9 @@ public class StateCount{
      */
 	public void decrement(State s){
 		if(map.containsKey(s)){
-			/*AtomicInteger newStateCount = new AtomicInteger(map.get(s).get() - 1);
-			if(newStateCount.get() == 0){
-				map.remove(s);
-			} else {
-				//map.replace(s, newStateCount);
-				map.get(s).getAndDecrement();
-			}*/
-			if(map.get(s).decrementAndGet() == 0){
-				map.remove(s);
-			}
-		} else{ //This should never be able to occur, if it does, we are doing something wrong in Worker
+			map.get(s).getAndDecrement();
+		} else{
+			System.out.println(map.get(s));
 			System.out.printf("Something went terribly wrong\n");
 			System.exit(-1);
 		}
@@ -69,27 +57,21 @@ public class StateCount{
      * @return the count of the specified state
      */
 	public int currentCount(State s){
-		/*AtomicInteger count = map.get(s);
-		if(count != null){
-			//System.out.println(map.values());
-			return count.get();
-		}*/
 		if(map.containsKey(s)){
-			try{
-				AtomicInteger ret;
-				if((ret = map.get(s)) == null){
-					return -1;
-				}
-				return ret.get();
+			try {
+                AtomicInteger ret;
+                if ((ret = map.get(s)) == null) {
+                    return -1;
+                }
+                return ret.get();
+
+
+                // Throw a nullException?
 			} catch(Exception e){
 				System.out.printf("Error occurred while getting map value\n");
 				e.printStackTrace();
 			}
 		}
-		return 0;
-		/*AtomicInteger count = map.get(s);
-		if(count != null)
-			return count.get();
-		return 0;*/
+		return -1;
 	}	
 }

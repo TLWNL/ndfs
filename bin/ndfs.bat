@@ -10,4 +10,4 @@ goto setupArgs
 
 :doneStart
 
-java -server -Xss100M -Xmx8192M -cp lib\graph.jar;lib\spinja.jar;build\jar\ndfs.jar driver.Main %ARGS%
+java -server -Xss256M -Xmx8192M -cp lib\graph.jar;lib\spinja.jar;build\jar\ndfs.jar driver.Main %ARGS%
